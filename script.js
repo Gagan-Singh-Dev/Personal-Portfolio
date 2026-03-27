@@ -57,29 +57,69 @@ if (hamburger) {
 
 const navbar = document.getElementById('navbar');
 const sections = document.querySelectorAll('section');
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+const lowPowerDevice =
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4);
+const shouldReduceEffects = prefersReducedMotion || (isTouchDevice && (isSmallScreen || lowPowerDevice));
 
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
+let sectionMetrics = [];
+let activeSectionId = '';
+let scrollTicking = false;
+let lastNavbarScrolled = false;
+
+function cacheSectionMetrics() {
+    sectionMetrics = Array.from(sections).map(section => ({
+        id: section.getAttribute('id'),
+        top: section.offsetTop,
+        height: section.clientHeight
+    }));
+}
+
+function updateScrollState() {
+    if (navbar) {
+        const shouldBeScrolled = window.scrollY > 50;
+        if (shouldBeScrolled !== lastNavbarScrolled) {
+            navbar.classList.toggle('scrolled', shouldBeScrolled);
+            lastNavbarScrolled = shouldBeScrolled;
+        }
     }
 
+    const y = window.scrollY;
     let current = '';
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        if (scrollY >= (sectionTop - sectionHeight / 3)) {
-            current = section.getAttribute('id');
+    sectionMetrics.forEach(section => {
+        if (y >= (section.top - section.height / 3)) {
+            current = section.id;
         }
     });
 
-    navLinksItems.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === `#${current}`) {
-            link.classList.add('active');
-        }
+    if (current && current !== activeSectionId) {
+        activeSectionId = current;
+        navLinksItems.forEach(link => {
+            const isActive = link.getAttribute('href') === `#${current}`;
+            link.classList.toggle('active', isActive);
+        });
+    }
+}
+
+function handleScroll() {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(() => {
+        updateScrollState();
+        scrollTicking = false;
     });
+}
+
+cacheSectionMetrics();
+updateScrollState();
+
+window.addEventListener('scroll', handleScroll, { passive: true });
+window.addEventListener('resize', () => {
+    cacheSectionMetrics();
+    updateScrollState();
 });
 
 if (window.Typed) {
@@ -110,11 +150,23 @@ revealElements.forEach(el => {
     revealObserver.observe(el);
 });
 
-if (window.particlesJS) {
+const particlesContainer = document.getElementById('particles-js');
+const disableParticles = lowPowerDevice && isTouchDevice;
+
+if (particlesContainer && disableParticles) {
+    particlesContainer.style.display = 'none';
+}
+
+if (window.particlesJS && particlesContainer && !disableParticles) {
+    const particleCount = shouldReduceEffects ? 30 : 80;
+    const linkDistance = shouldReduceEffects ? 110 : 150;
+    const linkOpacity = shouldReduceEffects ? 0.12 : 0.2;
+    const moveSpeed = shouldReduceEffects ? 1 : 1.5;
+
     particlesJS('particles-js', {
         "particles": {
             "number": {
-                "value": 80,
+                "value": particleCount,
                 "density": {
                     "enable": true,
                     "value_area": 800
@@ -136,14 +188,14 @@ if (window.particlesJS) {
             },
             "line_linked": {
                 "enable": true,
-                "distance": 150,
+                "distance": linkDistance,
                 "color": "#6b7280",
-                "opacity": 0.2,
+                "opacity": linkOpacity,
                 "width": 1
             },
             "move": {
                 "enable": true,
-                "speed": 1.5,
+                "speed": moveSpeed,
                 "direction": "none",
                 "random": true,
                 "straight": false,
@@ -155,11 +207,11 @@ if (window.particlesJS) {
             "detect_on": "canvas",
             "events": {
                 "onhover": {
-                    "enable": true,
+                    "enable": !shouldReduceEffects,
                     "mode": "grab"
                 },
                 "onclick": {
-                    "enable": true,
+                    "enable": !shouldReduceEffects,
                     "mode": "push"
                 },
                 "resize": true
@@ -176,7 +228,7 @@ if (window.particlesJS) {
                 }
             }
         },
-        "retina_detect": true
+        "retina_detect": !shouldReduceEffects
     });
 }
 
@@ -430,7 +482,7 @@ if (contactForm && formMsg) {
 
 const footer = document.getElementById('footer');
 if (footer) {
-    const count = 18;
+    const count = disableParticles ? 0 : (shouldReduceEffects ? 8 : 18);
     for (let i = 0; i < count; i++) {
         const p = document.createElement('div');
         p.className = 'footer-particle';
