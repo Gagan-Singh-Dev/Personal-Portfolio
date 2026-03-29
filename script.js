@@ -124,7 +124,7 @@ window.addEventListener('resize', () => {
 
 if (window.Typed) {
     new Typed('.typing', {
-        strings: ['Software Engineer', 'AI / ML Engineer', 'Problem Solver', 'Tech Enthusiast'],
+        strings: ['AI / ML Learner', 'Problem Solver', 'Tech Enthusiast', 'Engineering Student'],
         typeSpeed: 60,
         backSpeed: 40,
         loop: true,
