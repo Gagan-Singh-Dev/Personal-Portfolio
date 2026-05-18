@@ -410,8 +410,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Contact form handler with Vercel API
 const contactForm = document.getElementById('contact-form');
+const formMsg = document.getElementById('form-msg');
 
-if (contactForm) {
+if (contactForm && formMsg) {
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -420,7 +421,8 @@ if (contactForm) {
         const message = document.getElementById('message').value.trim();
 
         if (!name || !email || !message) {
-            alert('Please fill out all fields');
+            formMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i> Please fill out all fields before sending.';
+            formMsg.className = 'form-msg error';
             return;
         }
 
@@ -446,18 +448,32 @@ if (contactForm) {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                alert('Email sent successfully! I will get back to you soon.');
                 contactForm.reset();
                 btn.innerHTML = originalText;
                 btn.disabled = false;
+
+                formMsg.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> Message sent successfully! I will get back to you soon.';
+                formMsg.className = 'form-msg success';
+
+                setTimeout(() => {
+                    formMsg.className = 'form-msg';
+                    formMsg.innerHTML = '';
+                }, 5000);
             } else {
                 throw new Error(data.error || 'Submission failed');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error sending email. Please try again or email directly: gagan.singh.dev@outlook.com');
             btn.innerHTML = originalText;
             btn.disabled = false;
+
+            formMsg.innerHTML = '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Error sending email. Please try again or email directly: gagan.singh.dev@outlook.com';
+            formMsg.className = 'form-msg error';
+
+            setTimeout(() => {
+                formMsg.className = 'form-msg';
+                formMsg.innerHTML = '';
+            }, 5000);
         }
     });
 }
