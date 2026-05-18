@@ -452,7 +452,7 @@ if (contactForm && formMsg) {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
 
-                formMsg.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> Message sent successfully! I will get back to you soon.';
+                formMsg.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> Message sent Successfully! I will get back to you soon.';
                 formMsg.className = 'form-msg success';
 
                 setTimeout(() => {
@@ -467,7 +467,7 @@ if (contactForm && formMsg) {
             btn.innerHTML = originalText;
             btn.disabled = false;
 
-            formMsg.innerHTML = '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Error sending email. Please try again or email directly: gagan.singh.dev@outlook.com';
+            formMsg.innerHTML = '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Error sending Email. Please try again or email directly: gagan.singh.dev@outlook.com';
             formMsg.className = 'form-msg error';
 
             setTimeout(() => {
