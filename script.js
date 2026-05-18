@@ -408,10 +408,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Contact form handler with Vercel API
 const contactForm = document.getElementById('contact-form');
-const formMsg = document.getElementById('form-msg');
 
-if (contactForm && formMsg) {
+if (contactForm) {
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -420,62 +420,44 @@ if (contactForm && formMsg) {
         const message = document.getElementById('message').value.trim();
 
         if (!name || !email || !message) {
-            formMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i> Please fill out all fields before sending.';
-            formMsg.className = 'form-msg error';
+            alert('Please fill out all fields');
             return;
         }
 
         const btn = contactForm.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
-        const formData = new FormData(contactForm);
-        formData.set('_subject', `Portfolio Contact: ${name}`);
 
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
         btn.disabled = true;
 
         try {
-            const response = await fetch('https://formsubmit.co/ajax/gagan.singh.dev@outlook.com', {
+            const response = await fetch('/api/send-email', {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: formData
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    message: message
+                })
             });
 
-            const data = await response.json().catch(() => ({}));
-            const requestSucceeded = response.ok && (data.success === 'true' || data.success === true || data.message);
+            const data = await response.json();
 
-            if (!requestSucceeded) {
-                throw new Error(data.message || 'Form submission failed');
+            if (response.ok && data.success) {
+                alert('Email sent successfully! I will get back to you soon.');
+                contactForm.reset();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } else {
+                throw new Error(data.error || 'Submission failed');
             }
-
-            contactForm.reset();
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-
-            formMsg.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> Message sent successfully! I will get back to you soon.';
-            formMsg.className = 'form-msg success';
-
-            setTimeout(() => {
-                formMsg.className = 'form-msg';
-            }, 6000);
         } catch (error) {
-            console.error('Submission Error:', error);
+            console.error('Error:', error);
+            alert('Error sending email. Please try again or email directly: gagan.singh.dev@outlook.com');
             btn.innerHTML = originalText;
             btn.disabled = false;
-
-            const subject = encodeURIComponent('Portfolio Contact from ' + name);
-            const body = encodeURIComponent(
-                `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
-            );
-            const fallbackMailto = `mailto:gagan.singh.dev@outlook.com?subject=${subject}&body=${body}`;
-
-            formMsg.innerHTML = `<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Form service is unavailable right now. <a href="${fallbackMailto}">Send via email app</a>.`;
-            formMsg.className = 'form-msg error';
-
-            setTimeout(() => {
-                formMsg.className = 'form-msg';
-            }, 6000);
         }
     });
 }
